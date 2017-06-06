@@ -1,0 +1,457 @@
+{
+  "intents": [
+    {
+      "name": "AdditionalCardFeaturesIntent",
+      "samples": [
+        "The new card title is {title}",
+        "title is {title}",
+        "new card title is {title}",
+        "{title} is the title of the new card",
+        "{title} is the title of the card",
+        "{title} is the title",
+        "The title is {title}"
+      ],
+      "slots": [
+        {
+          "name": "title",
+          "type": "string",
+          "samples": [
+            "{title} ",
+            "The title is {title} ",
+            "The new card title is {title}",
+            "title is {title}",
+            "new card title is {title}",
+            "{title} is the title of the new card",
+            "{title} is the title of the card",
+            "{title} is the title"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "AMAZON.CancelIntent",
+      "samples": []
+    },
+    {
+      "name": "AMAZON.HelpIntent",
+      "samples": []
+    },
+    {
+      "name": "AMAZON.StopIntent",
+      "samples": []
+    },
+    {
+      "name": "AskChecklistIntent",
+      "samples": [
+        "Checklist"
+      ],
+      "slots": []
+    },
+    {
+      "name": "AskDescriptionIntent",
+      "samples": [
+        "Description"
+      ],
+      "slots": []
+    },
+    {
+      "name": "AskDueDateIntent",
+      "samples": [
+        "Due date"
+      ],
+      "slots": []
+    },
+    {
+      "name": "AskLabelIntent",
+      "samples": [
+        "Label"
+      ],
+      "slots": []
+    },
+    {
+      "name": "BoardOptionsIntent",
+      "samples": [
+        "list board options",
+        "board options"
+      ],
+      "slots": []
+    },
+    {
+      "name": "BoardSelectedIntent",
+      "samples": [
+        "{board_name} board"
+      ],
+      "slots": [
+        {
+          "name": "board_name",
+          "type": "string",
+          "samples": [
+            "{board_name} ",
+            "{board_name} board"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ListOptionsIntent",
+      "samples": [
+        "list list options",
+        "list options"
+      ],
+      "slots": []
+    },
+    {
+      "name": "ListSelectedIntent",
+      "samples": [
+        "{list_name} list"
+      ],
+      "slots": [
+        {
+          "name": "list_name",
+          "type": "string",
+          "samples": [
+            "{list_name} ",
+            "{list_name} list"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "NewCardIntent",
+      "samples": [
+        "create a card"
+      ],
+      "slots": []
+    },
+    {
+      "name": "ReceivedChecklistIntent",
+      "samples": [
+        "checklist is {checklist_list} ",
+        "the checklist for the new card is {checklist_list} ",
+        "checklist for the new card is {checklist_list} ",
+        "the checklist is {checklist_list} ",
+        "the checklist for the card is {checklist_list} ",
+        "checklist for the card is {checklist_list} "
+      ],
+      "slots": [
+        {
+          "name": "checklist_list",
+          "type": "string",
+          "samples": [
+            "checklist is {checklist_list}",
+            "{checklist_list} ",
+            "the checklist for the new card is {checklist_list}",
+            "checklist for the new card is {checklist_list}",
+            "the checklist is {checklist_list} ",
+            "the checklist for the card is {checklist_list} ",
+            "checklist for the card is {checklist_list}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ReceivedDescriptionIntent",
+      "samples": [
+        "The description is {description}",
+        "{description} is the description",
+        "{description} is the description for the new card",
+        "{description} is the description for the card",
+        "description is {description}"
+      ],
+      "slots": [
+        {
+          "name": "description",
+          "type": null,
+          "samples": [
+            "The description is {description}",
+            "{description} is the description",
+            "{description} is the description for the new card",
+            "{description} is the description for the card",
+            "description is {description}",
+            "{description} "
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ReceivedDueDateIntent",
+      "samples": [
+        "Due date is {due_date}",
+        "due date of the new card is {due_date} ",
+        "due date of the card is {due_date} ",
+        "the due date of the card is {due_date} ",
+        "the due date of the new card is {due_date}",
+        "the due date is {due_date} ",
+        "{due_date} is the due date",
+        "{due_date} is the due date for the new card",
+        "{due_date} is the due date for the card"
+      ],
+      "slots": [
+        {
+          "name": "due_date",
+          "type": "AMAZON.DATE",
+          "samples": []
+        }
+      ]
+    },
+    {
+      "name": "ReceivedLabelIntent",
+      "samples": [
+        "label is {label}",
+        "label for the new card is {label}",
+        "label for card is {label}",
+        "label for the card is {label}",
+        "{label} is the label",
+        "{label} is the label for the new card",
+        "{label} is the label for the card"
+      ],
+      "slots": [
+        {
+          "name": "label",
+          "type": "string",
+          "samples": [
+            "{label}",
+            "label is {label}",
+            "label for the new card is {label}",
+            "label for card is {label}",
+            "label for the card is {label}",
+            "{label} is the label for the new card",
+            "{label} is the label",
+            "{label} is the label for the card"
+          ]
+        }
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "string",
+      "values": []
+    }
+  ],
+  "prompts": [
+    {
+      "id": "Elicit.Intent-AdditionalCardFeaturesIntent.IntentSlot-title",
+      "promptVersion": "1.0",
+      "definitionVersion": "1.0",
+      "variations": [
+        {
+          "type": "PlainText",
+          "value": "What is the title of the new card?"
+        }
+      ]
+    },
+    {
+      "id": "Elicit.Intent-BoardSelectedIntent.IntentSlot-board_name",
+      "promptVersion": "1.0",
+      "definitionVersion": "1.0",
+      "variations": [
+        {
+          "type": "PlainText",
+          "value": "What board would you like to add a card to?"
+        }
+      ]
+    },
+    {
+      "id": "Elicit.Intent-ListSelectedIntent.IntentSlot-list_name",
+      "promptVersion": "1.0",
+      "definitionVersion": "1.0",
+      "variations": [
+        {
+          "type": "PlainText",
+          "value": "Which list would you like to add a card to?"
+        }
+      ]
+    },
+    {
+      "id": "Elicit.Intent-ReceivedChecklistIntent.IntentSlot-checklist_list",
+      "promptVersion": "1.0",
+      "definitionVersion": "1.0",
+      "variations": [
+        {
+          "type": "PlainText",
+          "value": "What are the checklist items for the new card. Please say, next item, between each item"
+        }
+      ]
+    },
+    {
+      "id": "Elicit.Intent-ReceivedDescriptionIntent.IntentSlot-description",
+      "promptVersion": "1.0",
+      "definitionVersion": "1.0",
+      "variations": [
+        {
+          "type": "PlainText",
+          "value": "What is the description for the new card?"
+        }
+      ]
+    },
+    {
+      "id": "Elicit.Intent-ReceivedLabelIntent.IntentSlot-label",
+      "promptVersion": "1.0",
+      "definitionVersion": "1.0",
+      "variations": [
+        {
+          "type": "PlainText",
+          "value": "What is the label for the new card?"
+        }
+      ]
+    }
+  ],
+  "dialog": {
+    "version": "1.0",
+    "intents": [
+      {
+        "name": "AdditionalCardFeaturesIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": [
+          {
+            "name": "title",
+            "type": "string",
+            "elicitationRequired": true,
+            "confirmationRequired": false,
+            "prompts": {
+              "elicit": "Elicit.Intent-AdditionalCardFeaturesIntent.IntentSlot-title"
+            }
+          }
+        ]
+      },
+      {
+        "name": "AskChecklistIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": []
+      },
+      {
+        "name": "AskDescriptionIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": []
+      },
+      {
+        "name": "AskDueDateIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": []
+      },
+      {
+        "name": "AskLabelIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": []
+      },
+      {
+        "name": "BoardOptionsIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": []
+      },
+      {
+        "name": "BoardSelectedIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": [
+          {
+            "name": "board_name",
+            "type": "string",
+            "elicitationRequired": true,
+            "confirmationRequired": false,
+            "prompts": {
+              "elicit": "Elicit.Intent-BoardSelectedIntent.IntentSlot-board_name"
+            }
+          }
+        ]
+      },
+      {
+        "name": "ListOptionsIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": []
+      },
+      {
+        "name": "ListSelectedIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": [
+          {
+            "name": "list_name",
+            "type": "string",
+            "elicitationRequired": true,
+            "confirmationRequired": false,
+            "prompts": {
+              "elicit": "Elicit.Intent-ListSelectedIntent.IntentSlot-list_name"
+            }
+          }
+        ]
+      },
+      {
+        "name": "NewCardIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": []
+      },
+      {
+        "name": "ReceivedChecklistIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": [
+          {
+            "name": "checklist_list",
+            "type": "string",
+            "elicitationRequired": true,
+            "confirmationRequired": false,
+            "prompts": {
+              "elicit": "Elicit.Intent-ReceivedChecklistIntent.IntentSlot-checklist_list"
+            }
+          }
+        ]
+      },
+      {
+        "name": "ReceivedDescriptionIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": [
+          {
+            "name": "description",
+            "type": null,
+            "elicitationRequired": true,
+            "confirmationRequired": false,
+            "prompts": {
+              "elicit": "Elicit.Intent-ReceivedDescriptionIntent.IntentSlot-description"
+            }
+          }
+        ]
+      },
+      {
+        "name": "ReceivedDueDateIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": [
+          {
+            "name": "due_date",
+            "type": "AMAZON.DATE",
+            "elicitationRequired": true,
+            "confirmationRequired": false,
+            "prompts": {}
+          }
+        ]
+      },
+      {
+        "name": "ReceivedLabelIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": [
+          {
+            "name": "label",
+            "type": "string",
+            "elicitationRequired": true,
+            "confirmationRequired": false,
+            "prompts": {
+              "elicit": "Elicit.Intent-ReceivedLabelIntent.IntentSlot-label"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
