@@ -1,0 +1,2 @@
+#ignore Jekyll generated site
+docs/_site/**

@@ -1,0 +1,50 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+section {
+  margin-top: 15px;
+}
+
+#title {
+  margin-bottom: 15px;
+}
+
+#content {
+  position: relative;
+  top: -40px;
+}
+
+#github_logo {
+  position: relative;
+  height: 30px;
+  top: -7px;
+  left: 45px;
+}
+
+.credits {
+  font-size: 11px;
+  font-family: 'OpenSansRegular', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: normal;
+  color: #696969; margin-top: -10px;
+}
+
+.credits.left {
+  float: left;
+}
+
+.credits.right {
+  float: right;
+}
+
+footer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 1rem;
+  padding-bottom: 0.25rem;
+  background-color: #1a1a1a;
+  text-align: center;
+}
