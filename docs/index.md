@@ -3,13 +3,13 @@
 
 Last updated: June 13, 2017
 
-firebird42 and other contributers ("us", "we", or "our") operates the Voice for Trello&trade;, an Amazon Alexa Skill (the "Skill"). This page informs you of our policies regarding the collection, use and disclosure of Personal Information we receive from users of the Skill.
+firebird42 and other contributers ("us", "we", or "our") operates Voice for Trello&trade;, an Amazon Alexa Skill (the "Skill"). This page informs you of our policies regarding the collection, use and disclosure of Personal Information we receive from users of the Skill.
 
 We use your Personal Information only for providing and improving the Skill. By using the Skill, you agree to the collection and use of information in accordance with this policy.
 
 ### Information Collection And Use
 
-While using our Skill, we may ask you to provide us with certain personally identifiable information that can be used to identify you. Personally identifiable information may include, but is not limited to your your Trello account.
+While using our Skill, we may ask you to provide us with certain personally identifiable information that can be used to identify you. Personally identifiable information may include, but is not limited to your Trello account.
 
 ### Security
 
