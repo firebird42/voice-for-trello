@@ -27,7 +27,7 @@ window.onload = function() {
     });
     AWS.config.update({
       region: 'us-east-1',
-      endpoint: 'dynamodb.us-east-2.amazonaws.com'
+      endpoint: 'dynamodb.us-east-1.amazonaws.com'
     });
 
     var dynamodb = new AWS.DynamoDB();
