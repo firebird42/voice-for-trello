@@ -77,9 +77,9 @@ window.onload = function() {
         '#T': 'mapAttr'
       },
       ExpressionAttributeValues: {
-        ':token':
+        ':token': {
           M: {
-            "trelloToken": {
+            'trelloToken': {
               S: getCookie(trello_cookie)
             }
           }
@@ -131,7 +131,7 @@ document.getElementById('logout_button').onclick = function() {
   amazon.Login.logout();
   deleteCookie(trello_cookie);
   deleteCookie(amazon_cookie);
-  alert('You have been successfully logged out.')
+  alert('You have been successfully logged out.');
 };
 
 
