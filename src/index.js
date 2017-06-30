@@ -49,6 +49,7 @@ var authenticate = function() {
   if (!this.event.session.user.accessToken) {
     console.log('No amazon access token');
     this.emit(':tellWithLinkAccountCard', 'To use this skill please use the companion app to link your Amazon account.');
+    return;
   }
   else if (!this.attributes.amazon_user_id) {
     //save amazon userId
@@ -69,6 +70,63 @@ var authenticate = function() {
     });
   }
 
+  //configure AWS
+  AWS.config.update({
+    region: 'us-east-1',
+    //endpoint: 'dynamodb.us-east-1.amazonaws.com',
+    credentials: new AWS.CognitoIdentityCredentials({
+      IdentityPoolId: 'us-east-1:9eb70423-1029-47f7-aa2d-094c03fdfec9'
+    })
+  });
+  AWS.config.credentials.get(function(err) {
+    if (err) {
+      console.log('Error occured with getting AWS credentials.');
+      console.log(err, err.stack);
+    }
+  });
+
+  var dynamodb = new AWS.DynamoDB({region: 'us-east-1'});
+
+  var params = {
+    Key: {
+      'amazon_user_id': {
+        S: this.attributes.amazon_user_id
+      }
+    },
+    TableName: 'VoiceForTrelloAccounts'
+  };
+  var self = this;
+  dynamodb.getItem(params, function(err, data) {
+    if (err) {
+      console.log('Error in finding account');
+      console.log(err, err.stack);
+    }
+    else {
+      console.log(data);
+      if (!data.Item) {
+        console.log('Creating new Voice for Trello account');
+        params = {
+          Item: {
+            'amazon_user_id': {
+              S: self.attributes.amazon_user_id
+            }
+          },
+          TableName: 'VoiceForTrelloAccounts'
+        };
+        dynamodb.putItem(params, function(err, data) {
+          if (err) {
+            console.log('Error in creating new account');
+            console.log(err, err.stack);
+          }
+        });
+      }
+      else if (data.Item.trello_token) {
+        self.attributes.trelloToken = data.Item.trello_token.S;
+        console.log('Trello token recieved');
+      }
+    }
+  });
+
   //Trello authorization
   if (!this.attributes.trelloToken) {
     this.emit(':tellWithCard', 'Please follow the directions in the Alexa companion app to link your Trello account.',
@@ -81,7 +139,7 @@ var authenticate = function() {
       this.attributes.t = t;
     } catch (e) {
       console.log('Unable to create trello wrapper, error: ' + e);
-      this.emit(':tell', "I'm sorry something went wrong with authorization, please try again.");
+      this.emit(':tell', "I'm sorry, something went wrong with authorization, please try again.");
     }
   }
 };
@@ -177,7 +235,7 @@ var newCardHandlers = Alexa.CreateStateHandler(states.NEWCARD, {
 var boardSelectHandlers = Alexa.CreateStateHandler(states.NEWCARD.BOARDSELECT, {
 
   'BoardSelect': function () {
-    cosnole.log('BoardSelect, board select state')
+    cosnole.log('BoardSelect, board select state');
     this.response.speak('Which of your boards would you like to create a card on?');
     this.response.listen('Say the name of one of your boards followed by, \"board\".\
     I can also list the names of your boards.');

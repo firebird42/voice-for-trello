@@ -39,66 +39,65 @@ window.onload = function() {
 
     //find correct user
     var params = {
-      ExpressionAttributeNames: {
-        '#ID': 'userId'
-      },
-      ExpressionAttributeValues: {
-        ':id': {
-          M: {
-            "amazon_user_id": {
-              S: getCookie(amazon_cookie)
-            }
-          }
+      Key: {
+        'amazon_user_id': {
+          S: getCookie(amazon_cookie)
         }
       },
-      FilterExpression: 'mapAttr.amazon_user_id = :id',
-      ProjectionExpression: '#ID',
-      TableName: 'VoiceForTrello'
+      TableName: 'VoiceForTrelloAccounts'
     };
-    dynamodb.scan(params, function(err, data) {
+    dynamodb.getItem(params, function(err, data) {
       if (err) {
+        console.log('Error in finding account');
         console.log(err, err.stack);
       }
       else {
         console.log(data);
-        if (data.Items[0]) {
-          var alexaUserId = data.Items[0].userId.S;
-          //send Trello Token to DynamoDB
+        if (!data.Item) {
+          console.log('Creating new Voice for Trello account');
           params = {
-            ExpressionAttributeNames: {
-              '#T': 'mapAttr'
-            },
-            ExpressionAttributeValues: {
-              ':token': {
-                M: {
-                  'trelloToken': {
-                    S: getCookie(trello_cookie)
-                  }
-                }
+            Item: {
+              'amazon_user_id': {
+                S: getCookie(amazon_cookie)
               }
             },
-            Key: {
-              'userId': {
-                S: alexaUserId()
-              }
-            },
-            ReturnValues: 'NONE',
-            TableName: 'VoiceForTrello',
-            UpdateExpression: 'SET #T = :token'
+            TableName: 'VoiceForTrelloAccounts'
           };
-          dynamodb.updateItem(params, function(err, data) {
+          dynamodb.putItem(params, function(err, data) {
             if (err) {
+              console.log('Error in creating new account');
               console.log(err, err.stack);
-            }
-            else {
-              console.log('Trello token to DynamoDB success!');
             }
           });
         }
-        else {
-          alert('There was a problem communicating with the Voice for Trello skill, please make sure you have linked your Amazon account to the skill.');
-          throw(new Error('Unable to send data to DynamoDB'));
+      }
+    });
+
+    params = {
+      ExpressionAttributeNames: {
+        '#T': 'trello_token'
+      },
+      ExpressionAttributeValues: {
+        ':token': {
+          S: getCookie(trello_cookie)
         }
+      },
+      Key: {
+        'userId': {
+          S: alexaUserId()
+        }
+      },
+      ReturnValues: 'NONE',
+      TableName: 'VoiceForTrelloAccounts',
+      UpdateExpression: 'SET #T = :token'
+    };
+    dynamodb.updateItem(params, function(err, data) {
+      if (err) {
+        console.log(err, err.stack);
+      }
+      else {
+        console.log('Trello token to DynamoDB success!');
+        alert('You have been successfully logged in.')
       }
     });
   }
