@@ -29,8 +29,10 @@ window.onload = function() {
       })
     });
     AWS.config.credentials.get(function(err) {
-      console.log('Error occured with getting AWS credentials.');
-      console.log(err, err.stack);
+      if (err) {
+        console.log('Error occured with getting AWS credentials.');
+        console.log(err, err.stack);
+      }
     });
 
     var dynamodb = new AWS.DynamoDB({region: 'us-east-1'});
