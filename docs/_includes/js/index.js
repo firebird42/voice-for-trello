@@ -21,14 +21,16 @@ window.onload = function() {
   //If user is logged into Amazon and Trello, send data to DynamoDB
   if (getCookie(trello_cookie) && getCookie(amazon_cookie)) {
     //configure AWS
-    AWSCognito.config.update({accessKeyId: 'anything', secretAccessKey: 'anything'});
     AWS.config.update({
       region: 'us-east-1',
       endpoint: 'dynamodb.us-east-1.amazonaws.com',
       credentials: new AWS.CognitoIdentityCredentials({
-        IdentityPoolId: 'us-east-1:9eb70423-1029-47f7-aa2d-094c03fdfec9',
-        RoleArn: 'arn:aws:iam::150346699775:role/Cognito_DynamoPoolUnauth'
+        IdentityPoolId: 'us-east-1:9eb70423-1029-47f7-aa2d-094c03fdfec9'
       })
+    });
+    AWS.config.credentials.get(function(err) {
+      console.log('Error occured with getting AWS credentials.');
+      console.log(err, err.stack);
     });
 
     var dynamodb = new AWS.DynamoDB({region: 'us-east-1'});
