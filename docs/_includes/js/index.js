@@ -57,7 +57,13 @@ window.onload = function() {
         }
         else {
           console.log(data);
-          return data.Items[0].userId.S;
+          if (data.Items[0]) {
+            return data.Items[0].userId.S;
+          }
+          else {
+            alert('There was a problem communicating with the Voice for Trello skill, please make sure you have linked your Amazon account to the skill.');
+            throw(new Error('Unable to send data to DynamoDB'));
+          }
         }
       });
     };
