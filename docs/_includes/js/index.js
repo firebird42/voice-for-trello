@@ -84,7 +84,7 @@ window.onload = function() {
       },
       Key: {
         'userId': {
-          S: alexaUserId()
+          S: getCookie(amazon_user_id)
         }
       },
       ReturnValues: 'NONE',
