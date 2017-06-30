@@ -44,6 +44,7 @@ var states = {
 
 var authenticate = function() {
   console.log('Authenticating');
+  var self = this;
 
   //Amazon Authorization
   if (!this.event.session.user.accessToken) {
@@ -56,7 +57,6 @@ var authenticate = function() {
     console.log('Saving amazon user email');
     var amznProfileURL = 'https://api.amazon.com/user/profile?access_token=';
     amznProfileURL += this.event.session.user.accessToken;
-    var self = this;
     request(amznProfileURL, function(error, response, body) {
       if (response.statusCode == 200) {
         var profile = JSON.parse(body);
@@ -95,7 +95,6 @@ var authenticate = function() {
     },
     TableName: 'VoiceForTrelloAccounts'
   };
-  var self = this;
   dynamodb.getItem(params, function(err, data) {
     if (err) {
       console.log('Error in finding account');
@@ -120,28 +119,28 @@ var authenticate = function() {
           }
         });
       }
-      else if (data.Item.trello_token) {
+      else if (!data.Item.trello_token) {
+        console.log('No Trello token');
+        self.emit(':tellWithCard', 'Please follow the directions in the Alexa companion app to link your Trello account.',
+        'Trello Account Linking', 'Please go to firebird42.github.io/voice-for-trello and follow the instructions to link your Trello account.');
+      }
+      else if (!self.attributes.trelloToken && data.Item.trello_token) {
         self.attributes.trelloToken = data.Item.trello_token.S;
         console.log('Trello token recieved');
+        console.log(self.attributes.trelloToken);
+      }
+
+      if (self.attributes.trelloToken && !self.attributes.t) {
+        try {
+          var t = new Trello(trello_api_key, self.attributes.trelloToken);
+          self.attributes.t = t;
+        } catch (e) {
+          console.log('Unable to create trello wrapper, error: ' + e);
+          self.emit(':tell', "I'm sorry, something went wrong with authorization, please try again.");
+        }
       }
     }
   });
-
-  //Trello authorization
-  if (!this.attributes.trelloToken) {
-    this.emit(':tellWithCard', 'Please follow the directions in the Alexa companion app to link your Trello account.',
-    'Trello Account Linking', 'Please go to firebird42.github.io/voice-for-trello and follow the instructions to link your Trello account.');
-  }
-  else if (!this.attributes.t) {
-    this.handler.state = '';
-    try {
-      var t = new Trello(trello_api_key, this.attributes.trelloToken);
-      this.attributes.t = t;
-    } catch (e) {
-      console.log('Unable to create trello wrapper, error: ' + e);
-      this.emit(':tell', "I'm sorry, something went wrong with authorization, please try again.");
-    }
-  }
 };
 
 var handlers = {
@@ -181,10 +180,9 @@ var startHandlers = Alexa.CreateStateHandler(states.START, {
     console.log('LaunchRequest, START state');
     if (!this.attributes.t) {
       authenticate.call(this);
-    } else {
-      this.emit(':ask', 'Welcome to Voice for Trello! What would you like to do?',
-      'All you can do at the moment is create a new card.');
     }
+    this.emit(':ask', 'Welcome to Voice for Trello! What would you like to do?',
+    'All you can do at the moment is create a new card.');
   },
 
   'NewCardIntent': function () {
@@ -215,19 +213,18 @@ var newCardHandlers = Alexa.CreateStateHandler(states.NEWCARD, {
     if (!this.attributes.t) {
       this.handler.state = '';
       authenticate.call(this);
-    } else {
-      this.attributes.newCard = {
-        'selectedBoard': '',
-        'selectedList': '',
-        'title': '',
-        'description': '',
-        'label': '',
-        'checklist': [],
-        'dueDate': null
-      };
-      this.handler.state = states.NEWCARD.BOARDSELECT;
-      this.emitWithState('BoardSelect');
     }
+    this.attributes.newCard = {
+      'selectedBoard': '',
+      'selectedList': '',
+      'title': '',
+      'description': '',
+      'label': '',
+      'checklist': [],
+      'dueDate': null
+    };
+    this.handler.state = states.NEWCARD.BOARDSELECT;
+    this.emitWithState('BoardSelect');
   }
 
 });
@@ -235,7 +232,7 @@ var newCardHandlers = Alexa.CreateStateHandler(states.NEWCARD, {
 var boardSelectHandlers = Alexa.CreateStateHandler(states.NEWCARD.BOARDSELECT, {
 
   'BoardSelect': function () {
-    cosnole.log('BoardSelect, board select state');
+    console.log('BoardSelect, board select state');
     this.response.speak('Which of your boards would you like to create a card on?');
     this.response.listen('Say the name of one of your boards followed by, \"board\".\
     I can also list the names of your boards.');
