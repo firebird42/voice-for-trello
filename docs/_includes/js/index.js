@@ -36,31 +36,33 @@ window.onload = function() {
     var dynamodb = new AWS.DynamoDB({region: 'us-east-1'});
 
     //find correct user
-    var params = {
-      ExpressionAttributeNames: {
-        '#ID': 'userId'
-      },
-      ExpressionAttributeValues: {
-        ':id': {
-          S: getCookie(amazon_cookie)
+    var alexaUserId = function() {
+      var params = {
+        ExpressionAttributeNames: {
+          '#ID': 'userId'
+        },
+        ExpressionAttributeValues: {
+          ':id': {
+            S: getCookie(amazon_cookie)
+          }
+        },
+        FilterExpression: 'mapAttr.amazon_user_id = :id',
+        ProjectionExpression: '#ID',
+        TableName: 'VoiceForTrello'
+      };
+      dynamodb.scan(params, function(err, data) {
+        if (err) {
+          console.log(err, err.stack);
+          return;
         }
-      },
-      FilterExpression: 'mapAttr.amazon_user_id = :id',
-      ProjectionExpression: '#ID',
-      TableName: 'VoiceForTrello'
+        else {
+          console.log(data);
+          return data.Items[0].userId.S;
+        }
+      });
     };
-    var alexaUserId;
-    dynamodb.scan(params, function(err, data) {
-      if (err) {
-        console.log(err, err.stack);
-        return;
-      }
-      else {
-        alexaUserId = data.Items[0].userId.S
-      }
-    });
 
-    params = {
+    var params = {
       ExpressionAttributeNames: {
         '#T': 'mapAttr.trelloToken'
       },
@@ -71,7 +73,7 @@ window.onload = function() {
       },
       Key: {
         'userId': {
-          S: alexaUserId
+          S: alexaUserId()
         }
       },
       ReturnValues: 'NONE',
