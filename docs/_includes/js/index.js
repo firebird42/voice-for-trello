@@ -21,6 +21,7 @@ window.onload = function() {
   //If user is logged into Amazon and Trello, send data to DynamoDB
   if (getCookie(trello_cookie) && getCookie(amazon_cookie)) {
     //configure AWS
+    AWSCognito.config.update({accessKeyId: 'anything', secretAccessKey: 'anything'});
     AWS.config.update({
       region: 'us-east-1',
       endpoint: 'dynamodb.us-east-1.amazonaws.com',
@@ -30,7 +31,7 @@ window.onload = function() {
       })
     });
 
-    var dynamodb = new AWS.DynamoDB();
+    var dynamodb = new AWS.DynamoDB({region: 'us-east-1'});
 
     //find correct user
     var params = {
