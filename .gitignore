@@ -1,2 +1,5 @@
 #ignore Jekyll generated site
 docs/_site/**
+src/node_modules/**
+src/etc/**
+src/src.zip

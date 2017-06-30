@@ -1,0 +1,3 @@
+For return_url in Trello Login url, when testing locally use 'http%3A%2F%2F127.0.0.1%3A4000' otherwise use actual url.
+  https%3A%2F%2Ffirebird42.github.io%2Fvoice-for-trello
+To run locally use command jekyll serve --baseurl ''
