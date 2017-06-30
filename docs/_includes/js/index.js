@@ -38,7 +38,7 @@ window.onload = function() {
     //find correct user
     var params = {
       ExpressionAttributeNames: {
-        'ID': 'userId'
+        '#ID': 'userId'
       },
       ExpressionAttributeValues: {
         ':id': {
@@ -49,13 +49,14 @@ window.onload = function() {
       ProjectionExpression: '#ID',
       TableName: 'VoiceForTrello'
     };
+    var alexaUserId;
     dynamodb.scan(params, function(err, data) {
       if (err) {
         console.log(err, err.stack);
         return;
       }
       else {
-        var alexaUserId = data.Items[0].userId.S
+        alexaUserId = data.Items[0].userId.S
       }
     });
 
