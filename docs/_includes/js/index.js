@@ -119,7 +119,7 @@ document.getElementById('login_with_amazon').onclick = function() {
         alert('Something went wrong with the Login with Amazon process. Please try again.');
         return;
       }
-      setCookie(amazon_cookie, response.profile.email);
+      setCookie(amazon_cookie, response.profile.PrimaryEmail);
     });
   });
   return false;
