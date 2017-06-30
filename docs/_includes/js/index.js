@@ -126,6 +126,41 @@ document.getElementById('login_with_amazon').onclick = function() {
 };
 
 document.getElementById('logout_button').onclick = function() {
+  //remove user from DynamoDB table
+  AWS.config.update({
+    region: 'us-east-1',
+    //endpoint: 'dynamodb.us-east-1.amazonaws.com',
+    credentials: new AWS.CognitoIdentityCredentials({
+      IdentityPoolId: 'us-east-1:9eb70423-1029-47f7-aa2d-094c03fdfec9'
+    })
+  });
+  AWS.config.credentials.get(function(err) {
+    if (err) {
+      console.log('Error occured with getting AWS credentials.');
+      console.log(err, err.stack);
+    }
+  });
+
+  var dynamodb = new AWS.DynamoDB({region: 'us-east-1'});
+
+  var params = {
+    Key: {
+      'amazon_user_id': {
+        S: getCookie(amazon_cookie)
+      }
+    },
+    TableName: 'VoiceForTrelloAccounts'
+  };
+  dynamodb.deleteItem(params, function(err, data) {
+    if (err) {
+      console.log('Error with removing user from DynamoDB table.');
+      console.log(err, err.stack);
+    }
+    else {
+      console.log(data);
+    }
+  });
+
   amazon.Login.logout();
   deleteCookie(trello_cookie);
   deleteCookie(amazon_cookie);
