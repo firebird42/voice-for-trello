@@ -84,7 +84,7 @@ window.onload = function() {
       },
       Key: {
         'userId': {
-          S: getCookie(amazon_user_id)
+          S: getCookie(amazon_cookie)
         }
       },
       ReturnValues: 'NONE',
