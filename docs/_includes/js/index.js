@@ -43,7 +43,11 @@ window.onload = function() {
         },
         ExpressionAttributeValues: {
           ':id': {
-            S: getCookie(amazon_cookie)
+            M: {
+              "amazon_user_id": {
+                S: getCookie(amazon_cookie)
+              }
+            }
           }
         },
         FilterExpression: 'mapAttr.amazon_user_id = :id',
@@ -70,11 +74,15 @@ window.onload = function() {
 
     var params = {
       ExpressionAttributeNames: {
-        '#T': 'mapAttr.trelloToken'
+        '#T': 'mapAttr'
       },
       ExpressionAttributeValues: {
-        ':token': {
-          S: getCookie(trello_cookie)
+        ':token':
+          M: {
+            "trelloToken": {
+              S: getCookie(trello_cookie)
+            }
+          }
         }
       },
       Key: {
