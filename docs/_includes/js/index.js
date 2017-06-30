@@ -83,7 +83,7 @@ window.onload = function() {
         }
       },
       Key: {
-        'userId': {
+        'amazon_user_id': {
           S: getCookie(amazon_cookie)
         }
       },
