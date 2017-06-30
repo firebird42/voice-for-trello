@@ -23,6 +23,70 @@ section {
   left: 45px;
 }
 
+#github_logo:hover {
+  opacity: 0.5;
+}
+
+#logins {
+  display: inline;
+}
+
+#logins a {
+  vertical-align: middle;
+}
+
+.custom_button {
+  font-family: 'OpenSansLight', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: normal;
+  list-style: none;
+  display: inline;
+  color: white;
+  line-height: 50px;
+  text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+}
+
+.custom_button a {
+  color: white;
+  //background: linear_gradient(#93bd20, #659e10);
+  border-radius: 2px;
+  box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.3), 0px 3px 7px rgba(0, 0, 0, 0.7);
+  padding: 10px 12px;
+  margin-top: 15px;
+  margin-bottom: 35px;
+  margin-left: 20px;
+  line-height: 14px;
+  font-size: 14px;
+  display: inline-block;
+  text-align: center;
+}
+
+.custom_button a:hover {
+  //background: linear_gradient(#749619, #527f0e);
+  box-shadow: inset 0px 1px 1px rgba(0, 0, 0, 0.2), 0px 1px 0px transparent;
+}
+
+#trello_login_button a {
+  border: 1px solid #055A8C; //blue 700 weight
+  background-color: #0079BF; //blue 500 weight
+}
+
+#trello_login_button a:hover {
+  background-color: #094C72; //blue 800 weight
+  border: 1px solid #0C3953; //blue 900 weight
+}
+
+#logout_button a {
+  border: 1px solid #B04632; //red 700 weight
+  background-color: #EB5A46; //red 500 weight
+}
+
+#logout_button a:hover {
+  background-color: #933B27; //red 800 weight
+  border: 1px solid #6E2F1A; //red 900 weight
+  cursor: pointer; //to correct for the fact that it's not a link
+}
+
 .credits {
   font-size: 11px;
   font-family: 'OpenSansRegular', "Helvetica Neue", Helvetica, Arial, sans-serif;

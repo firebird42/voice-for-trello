@@ -1,2 +1,6 @@
 theme: jekyll-theme-midnight
 baseurl: /voice-for-trello
+markdown: redcarpet
+jsarr:
+- js/index.js
+trelloapikey: a22c6d69c7c3264f73545cd46b8a83e6
