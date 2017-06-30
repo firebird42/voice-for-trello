@@ -51,9 +51,9 @@ var authenticate = function() {
     this.emit(':tellWithLinkAccountCard', 'To use this skill please use the companion app to link your Amazon account.');
     return;
   }
-  else if (!this.attributes.amazon_user_id) {
-    //save amazon userId
-    console.log('Saving amazon user id');
+  else if (!this.attributes.amazon_user_email) {
+    //save amazon user email
+    console.log('Saving amazon user email');
     var amznProfileURL = 'https://api.amazon.com/user/profile?access_token=';
     amznProfileURL += this.event.session.user.accessToken;
     var self = this;
@@ -61,7 +61,7 @@ var authenticate = function() {
       if (response.statusCode == 200) {
         var profile = JSON.parse(body);
         console.log(profile);
-        self.attributes.amazon_user_id = profile.user_id;
+        self.attributes.amazon_user_email = profile.email;
         self.emit(':saveState', true);
       } else {
         console.log('Errror retrieving amazon profile.');
@@ -89,8 +89,8 @@ var authenticate = function() {
 
   var params = {
     Key: {
-      'amazon_user_id': {
-        S: this.attributes.amazon_user_id
+      'amazon_user_email': {
+        S: this.attributes.amazon_user_email
       }
     },
     TableName: 'VoiceForTrelloAccounts'
@@ -107,8 +107,8 @@ var authenticate = function() {
         console.log('Creating new Voice for Trello account');
         params = {
           Item: {
-            'amazon_user_id': {
-              S: self.attributes.amazon_user_id
+            'amazon_user_email': {
+              S: self.attributes.amazon_user_email
             }
           },
           TableName: 'VoiceForTrelloAccounts'

@@ -1,5 +1,5 @@
 var trello_cookie = 'trello_token';
-var amazon_cookie = 'amazon_user_id';
+var amazon_cookie = 'amazon_user_email';
 
 //setup login with amazon
 window.onAmazonLoginReady = function() {
@@ -40,7 +40,7 @@ window.onload = function() {
     //find correct user
     var params = {
       Key: {
-        'amazon_user_id': {
+        'amazon_user_email': {
           S: getCookie(amazon_cookie)
         }
       },
@@ -57,7 +57,7 @@ window.onload = function() {
           console.log('Creating new Voice for Trello account');
           params = {
             Item: {
-              'amazon_user_id': {
+              'amazon_user_email': {
                 S: getCookie(amazon_cookie)
               }
             },
@@ -83,7 +83,7 @@ window.onload = function() {
         }
       },
       Key: {
-        'amazon_user_id': {
+        'amazon_user_email': {
           S: getCookie(amazon_cookie)
         }
       },
@@ -107,7 +107,7 @@ document.getElementById('login_with_amazon').onclick = function() {
   var options = {
     interactive : 'auto',
     popup : true,
-    scope : 'profile:user_id'
+    scope : 'profile'
   };
   amazon.Login.authorize(options, function(response){
     if (response.error) {
@@ -119,7 +119,7 @@ document.getElementById('login_with_amazon').onclick = function() {
         alert('Something went wrong with the Login with Amazon process. Please try again.');
         return;
       }
-      setCookie(amazon_cookie, response.profile.CustomerId);
+      setCookie(amazon_cookie, response.profile.email);
     });
   });
   return false;
@@ -145,7 +145,7 @@ document.getElementById('logout_button').onclick = function() {
 
   var params = {
     Key: {
-      'amazon_user_id': {
+      'amazon_user_email': {
         S: getCookie(amazon_cookie)
       }
     },
