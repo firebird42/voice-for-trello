@@ -38,15 +38,12 @@ var states = {
   NEWCARD: {
     BOARDSELECT: '_NEWCARD_BOARDSELECT',
     LISTSELECT: '_NEWCARD_LISTSELECT',
-    CREATE: '_CREATE'
+    CREATE: '_NEWCARD_CREATE'
   }
 };
 
 var authenticate = function() {
   console.log('Authenticating');
-
-  this.attributes.test = 'Test';
-  console.log(this.attributes.test);
 
   //Amazon Authorization
   if (!this.event.session.user.accessToken) {
@@ -55,14 +52,19 @@ var authenticate = function() {
   }
   else if (!this.attributes.amazon_user_id) {
     //save amazon userId
+    console.log('Saving amazon user id');
     var amznProfileURL = 'https://api.amazon.com/user/profile?access_token=';
     amznProfileURL += this.event.session.user.accessToken;
+    var self = this;
     request(amznProfileURL, function(error, response, body) {
       if (response.statusCode == 200) {
         var profile = JSON.parse(body);
-        this.attributes.amazon_user_id = profile.user_id;
+        console.log(profile);
+        self.attributes.amazon_user_id = profile.user_id;
+        self.emit(':saveState', true);
       } else {
-        this.emit(':tell', "I can't connect to Amazon Profile Service right now, try again later");
+        console.log('Errror retrieving amazon profile.');
+        self.emit(':tell', "I can't connect to Amazon Profile Service right now, please try again later.");
       }
     });
   }
@@ -72,29 +74,28 @@ var authenticate = function() {
     this.emit(':tellWithCard', 'Please follow the directions in the Alexa companion app to link your Trello account.',
     'Trello Account Linking', 'Please go to firebird42.github.io/voice-for-trello and follow the instructions to link your Trello account.');
   }
-  if (!this.attributes.t) {
+  else if (!this.attributes.t) {
+    this.handler.state = '';
     try {
       var t = new Trello(trello_api_key, this.attributes.trelloToken);
       this.attributes.t = t;
     } catch (e) {
       console.log('Unable to create trello wrapper, error: ' + e);
-      this.emit(':tell', 'I\'m sorry something went wrong with authorization, please try again.');
+      this.emit(':tell', "I'm sorry something went wrong with authorization, please try again.");
     }
   }
-}
+};
 
 var handlers = {
 
   'LaunchRequest': function () {
     console.log('LaunchRequest, no state');
-    authenticate.call(this);
     this.handler.state = states.START;
     this.emitWithState('LaunchRequest');
   },
 
   'NewCardIntent': function () {
     console.log('NewCardIntent, no state');
-    authenticate.call(this);
     this.handler.state = states.NEWCARD;
     this.emitWithState('NewCardIntent');
   },
@@ -120,8 +121,12 @@ var startHandlers = Alexa.CreateStateHandler(states.START, {
 
   'LaunchRequest': function () {
     console.log('LaunchRequest, START state');
-    this.emit(':ask', 'Welcome to Voice for Trello! What would you like to do?',
-    'All you can do at the moment is create a new card.');
+    if (!this.attributes.t) {
+      authenticate.call(this);
+    } else {
+      this.emit(':ask', 'Welcome to Voice for Trello! What would you like to do?',
+      'All you can do at the moment is create a new card.');
+    }
   },
 
   'NewCardIntent': function () {
@@ -149,18 +154,22 @@ var newCardHandlers = Alexa.CreateStateHandler(states.NEWCARD, {
 
   'NewCardIntent': function () {
     console.log('NewCardIntent, NEWCARD state');
-    this.attributes.newCard = {
-      'selectedBoard': '',
-      'selectedList': '',
-      'title': '',
-      'description': '',
-      'label': '',
-      'checklist': [],
-      'dueDate': null
-    };
-
-    this.handler.state = states.NEWCARD.BOARDSELECT;
-    this.emitWithState('BoardSelect');
+    if (!this.attributes.t) {
+      this.handler.state = '';
+      authenticate.call(this);
+    } else {
+      this.attributes.newCard = {
+        'selectedBoard': '',
+        'selectedList': '',
+        'title': '',
+        'description': '',
+        'label': '',
+        'checklist': [],
+        'dueDate': null
+      };
+      this.handler.state = states.NEWCARD.BOARDSELECT;
+      this.emitWithState('BoardSelect');
+    }
   }
 
 });
@@ -168,6 +177,7 @@ var newCardHandlers = Alexa.CreateStateHandler(states.NEWCARD, {
 var boardSelectHandlers = Alexa.CreateStateHandler(states.NEWCARD.BOARDSELECT, {
 
   'BoardSelect': function () {
+    cosnole.log('BoardSelect, board select state')
     this.response.speak('Which of your boards would you like to create a card on?');
     this.response.listen('Say the name of one of your boards followed by, \"board\".\
     I can also list the names of your boards.');
@@ -381,7 +391,7 @@ var createHandlers = Alexa.CreateStateHandler(states.NEWCARD.CREATE, {
   'AMAZON.NoIntent': function () {
     //Send new card to Trello
 
-    this.emit(':tell', 'Card Added! Thank you for using Voice for Trello!')
+    this.emit(':tell', 'Card Added! Thank you for using Voice for Trello!');
   },
 
   'AMAZON.HelpIntent': function () {
