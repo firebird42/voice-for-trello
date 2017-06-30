@@ -23,7 +23,7 @@ window.onload = function() {
     //configure AWS
     AWS.config.update({
       region: 'us-east-1',
-      endpoint: 'dynamodb.us-east-1.amazonaws.com',
+      //endpoint: 'dynamodb.us-east-1.amazonaws.com',
       credentials: new AWS.CognitoIdentityCredentials({
         IdentityPoolId: 'us-east-1:9eb70423-1029-47f7-aa2d-094c03fdfec9'
       })
