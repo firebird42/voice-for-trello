@@ -9,7 +9,7 @@ In order to use Voice for Trello on your Amazon Alexa device you must login to A
       width="156" height="32" />
   </a>
 
-  {% capture final_trello_url %}{{ 'https://trello.com/1/authorize?callback_method=fragment&return_url=' }}{{ 'http%3A%2F%2F127.0.0.1%3A4000' }}{{ '&scope=read,write&expiration=never&name=Voice%20for%20Trello&key=' }}{{ site.trelloapikey }}{% endcapture %}
+  {% capture final_trello_url %}{{ 'https://trello.com/1/authorize?callback_method=fragment&return_url=' }}{{ 'https%3A%2F%2Ffirebird42.github.io%2Fvoice-for-trello' }}{{ '&scope=read,write&expiration=never&name=Voice%20for%20Trello&key=' }}{{ site.trelloapikey }}{% endcapture %}
   <li class="custom_button" id="trello_login_button"><a href="{{ final_trello_url }}">Trello Login</a></li>
 
   <li class="custom_button" id="logout_button"><a>Logout</a></li>
