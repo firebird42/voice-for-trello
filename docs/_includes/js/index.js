@@ -96,7 +96,7 @@ document.getElementById('login_with_amazon').onclick = function() {
       alert('Something went wrong with the Login with Amazon process. Please try again.');
       return;
     }
-    amazon.Login.retriveProfile(response.access_token, function(response) {
+    amazon.Login.retrieveProfile(response.access_token, function(response) {
       if (response.error) {
         alert('Something went wrong with the Login with Amazon process. Please try again.');
         return;
