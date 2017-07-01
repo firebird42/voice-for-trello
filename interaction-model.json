@@ -14,7 +14,7 @@
       "slots": [
         {
           "name": "title",
-          "type": "string",
+          "type": null,
           "samples": [
             "{title} ",
             "The title is {title} ",
@@ -124,32 +124,6 @@
       "slots": []
     },
     {
-      "name": "ReceivedChecklistIntent",
-      "samples": [
-        "checklist is {checklist_list} ",
-        "the checklist for the new card is {checklist_list} ",
-        "checklist for the new card is {checklist_list} ",
-        "the checklist is {checklist_list} ",
-        "the checklist for the card is {checklist_list} ",
-        "checklist for the card is {checklist_list} "
-      ],
-      "slots": [
-        {
-          "name": "checklist_list",
-          "type": "string",
-          "samples": [
-            "checklist is {checklist_list}",
-            "{checklist_list} ",
-            "the checklist for the new card is {checklist_list}",
-            "checklist for the new card is {checklist_list}",
-            "the checklist is {checklist_list} ",
-            "the checklist for the card is {checklist_list} ",
-            "checklist for the card is {checklist_list}"
-          ]
-        }
-      ]
-    },
-    {
       "name": "ReceivedDescriptionIntent",
       "samples": [
         "The description is {description}",
@@ -161,7 +135,7 @@
       "slots": [
         {
           "name": "description",
-          "type": null,
+          "type": "string",
           "samples": [
             "The description is {description}",
             "{description} is the description",
@@ -190,7 +164,9 @@
         {
           "name": "due_date",
           "type": "AMAZON.DATE",
-          "samples": []
+          "samples": [
+            "{due_date}"
+          ]
         }
       ]
     },
@@ -226,7 +202,71 @@
   "types": [
     {
       "name": "string",
-      "values": []
+      "values": [
+        {
+          "id": null,
+          "name": {
+            "value": "blah blah blah",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "this a sentence",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "this is a title",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "I was very proud of my nickname throughout high school but today- I couldn’t be any different to what my nickname was.",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "A purple pig and a green donkey flew a kite in the middle of the night and ended up sunburnt.",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "There were white out conditions in the town; subsequently, the roads were impassable.",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "She borrowed the book from him many years ago and hasn't yet returned it.",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "She always speaks to him in a loud voice.",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "I'd rather be a bird than a fish.",
+            "synonyms": []
+          }
+        }
+      ]
     }
   ],
   "prompts": [
@@ -264,17 +304,6 @@
       ]
     },
     {
-      "id": "Elicit.Intent-ReceivedChecklistIntent.IntentSlot-checklist_list",
-      "promptVersion": "1.0",
-      "definitionVersion": "1.0",
-      "variations": [
-        {
-          "type": "PlainText",
-          "value": "What are the checklist items for the new card. Please say, next item, between each item"
-        }
-      ]
-    },
-    {
       "id": "Elicit.Intent-ReceivedDescriptionIntent.IntentSlot-description",
       "promptVersion": "1.0",
       "definitionVersion": "1.0",
@@ -282,6 +311,17 @@
         {
           "type": "PlainText",
           "value": "What is the description for the new card?"
+        }
+      ]
+    },
+    {
+      "id": "Elicit.Intent-ReceivedDueDateIntent.IntentSlot-due_date",
+      "promptVersion": "1.0",
+      "definitionVersion": "1.0",
+      "variations": [
+        {
+          "type": "PlainText",
+          "value": "What's the due date of your new card?"
         }
       ]
     },
@@ -307,7 +347,7 @@
         "slots": [
           {
             "name": "title",
-            "type": "string",
+            "type": null,
             "elicitationRequired": true,
             "confirmationRequired": false,
             "prompts": {
@@ -315,36 +355,6 @@
             }
           }
         ]
-      },
-      {
-        "name": "AskChecklistIntent",
-        "confirmationRequired": false,
-        "prompts": {},
-        "slots": []
-      },
-      {
-        "name": "AskDescriptionIntent",
-        "confirmationRequired": false,
-        "prompts": {},
-        "slots": []
-      },
-      {
-        "name": "AskDueDateIntent",
-        "confirmationRequired": false,
-        "prompts": {},
-        "slots": []
-      },
-      {
-        "name": "AskLabelIntent",
-        "confirmationRequired": false,
-        "prompts": {},
-        "slots": []
-      },
-      {
-        "name": "BoardOptionsIntent",
-        "confirmationRequired": false,
-        "prompts": {},
-        "slots": []
       },
       {
         "name": "BoardSelectedIntent",
@@ -363,12 +373,6 @@
         ]
       },
       {
-        "name": "ListOptionsIntent",
-        "confirmationRequired": false,
-        "prompts": {},
-        "slots": []
-      },
-      {
         "name": "ListSelectedIntent",
         "confirmationRequired": false,
         "prompts": {},
@@ -385,35 +389,13 @@
         ]
       },
       {
-        "name": "NewCardIntent",
-        "confirmationRequired": false,
-        "prompts": {},
-        "slots": []
-      },
-      {
-        "name": "ReceivedChecklistIntent",
-        "confirmationRequired": false,
-        "prompts": {},
-        "slots": [
-          {
-            "name": "checklist_list",
-            "type": "string",
-            "elicitationRequired": true,
-            "confirmationRequired": false,
-            "prompts": {
-              "elicit": "Elicit.Intent-ReceivedChecklistIntent.IntentSlot-checklist_list"
-            }
-          }
-        ]
-      },
-      {
         "name": "ReceivedDescriptionIntent",
         "confirmationRequired": false,
         "prompts": {},
         "slots": [
           {
             "name": "description",
-            "type": null,
+            "type": "string",
             "elicitationRequired": true,
             "confirmationRequired": false,
             "prompts": {
@@ -432,7 +414,9 @@
             "type": "AMAZON.DATE",
             "elicitationRequired": true,
             "confirmationRequired": false,
-            "prompts": {}
+            "prompts": {
+              "elicit": "Elicit.Intent-ReceivedDueDateIntent.IntentSlot-due_date"
+            }
           }
         ]
       },

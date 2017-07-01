@@ -8,6 +8,7 @@ let trello_api_key;
 
 exports.handler = (event, context, callback) => {
   if (trello_api_key) {
+    console.log(trello_api_key);
     processEvent(event, context, callback);
   } else {
     // Decrypt code should run once and variables stored outside of the function
@@ -25,6 +26,7 @@ exports.handler = (event, context, callback) => {
 };
 
 function processEvent(event, context, callback) {
+  trello_api_key = 'a22c6d69c7c3264f73545cd46b8a83e6';
   var alexa = Alexa.handler(event, context, callback);
   alexa.appId = 'amzn1.ask.skill.f3909a50-a6dc-42da-99f7-2fb1a26fd56e';
   alexa.dynamoDBTableName = 'VoiceForTrello';
@@ -132,15 +134,22 @@ var authenticate = function() {
 
       if (self.attributes.trelloToken && !self.attributes.t) {
         try {
+          console.log('Creating trello wrapper');
           var t = new Trello(trello_api_key, self.attributes.trelloToken);
           self.attributes.t = t;
+          self.emit(':saveState', true);
         } catch (e) {
           console.log('Unable to create trello wrapper, error: ' + e);
-          self.emit(':tell', "I'm sorry, something went wrong with authorization, please try again.");
+          self.emit(':tell', "I'm sorry, something went wrong with authentication, please try again.");
         }
       }
     }
   });
+};
+
+var stopIntent = function () {
+  this.handler.state = '';
+  this.emit(':tell', 'Goodbye!');
 };
 
 var handlers = {
@@ -165,24 +174,34 @@ var handlers = {
   },
 
   'AMAZON.StopIntent': function () {
-    this.emit(':tell', 'Goodbye!');
+    stopIntent.call(this);
   },
 
   'AMAZON.CancelIntent': function () {
+    stopIntent.call(this);
+  },
 
+  'Unhandled': function () {
+    console.log('Unhandled, no state');
+    this.handler.state = states.START;
+    this.emitWithState('LaunchRequest');
   }
 
+};
+
+var launchRequest = function () {
+  console.log('LaunchRequest, START state');
+  if (!this.attributes.t) {
+    authenticate.call(this);
+  }
+  this.emit(':ask', 'Welcome to Voice for Trello! What would you like to do?',
+  'All you can do at the moment is create a new card.');
 };
 
 var startHandlers = Alexa.CreateStateHandler(states.START, {
 
   'LaunchRequest': function () {
-    console.log('LaunchRequest, START state');
-    if (!this.attributes.t) {
-      authenticate.call(this);
-    }
-    this.emit(':ask', 'Welcome to Voice for Trello! What would you like to do?',
-    'All you can do at the moment is create a new card.');
+    launchRequest.call(this);
   },
 
   'NewCardIntent': function () {
@@ -197,11 +216,16 @@ var startHandlers = Alexa.CreateStateHandler(states.START, {
   },
 
   'AMAZON.StopIntent': function () {
-    this.emit('AMAZON.StopIntent');
+    stopIntent.call(this);
   },
 
   'AMAZON.CancelIntent': function () {
+    stopIntent.call(this);
+  },
 
+  'Unhandled': function () {
+    console.log('Unhandled, START state');
+    launchRequest.call(this);
   }
 
 });
@@ -215,12 +239,17 @@ var newCardHandlers = Alexa.CreateStateHandler(states.NEWCARD, {
       authenticate.call(this);
     }
     this.attributes.newCard = {
-      'selectedBoard': '',
-      'selectedList': '',
+      'selectedBoard': {
+        'name': '',
+        'id': ''
+      },
+      'selectedList': {
+        'name': '',
+        'id': ''
+      },
       'title': '',
       'description': '',
       'label': '',
-      'checklist': [],
       'dueDate': null
     };
     this.handler.state = states.NEWCARD.BOARDSELECT;
@@ -229,236 +258,504 @@ var newCardHandlers = Alexa.CreateStateHandler(states.NEWCARD, {
 
 });
 
+var boardSelect = function () {
+  console.log('BoardSelect, BOARDSELECT state');
+  if (!this.attributes.toSay) {
+    this.attributes.toSay = '';
+  }
+  this.response.speak(this.attributes.toSay + 'Which of your boards would you like to create a card on?');
+  this.attributes.toSay = '';
+  this.response.listen('Say the name of one of your boards followed by, \"board\".\
+  I can also list the names of your boards.');
+  this.emit(':responseReady');
+};
+
+var boardOptions = function () {
+  console.log('BoardOptionsIntent, BOARDSELECT state');
+  var t = new Trello(trello_api_key, this.attributes.trelloToken);
+
+  //calls Trello API to list the user's boards
+  //TODO: select a specific team's boards or personal boards
+  this.attributes.userBoards = [];
+  var self = this;
+  console.log('Getting user boards');
+  t.get('/1/members/me/boards', function(err, data) {
+    if (err) {
+      console.log('Error occured in getting board list.');
+      console.log(err);
+      self.emit(':tell', 'There was an error connecting to Trello, please try again later.');
+    }
+    console.log('Board data');
+    console.log(data);
+    for (var i = 0; i < data.length; i++) {
+      var board = data[i];
+      self.attributes.userBoards.push({
+        'name': board.name,
+        'id': board.id
+      });
+    }
+    console.log('Got user boards');
+    console.log(self.attributes.userBoards);
+
+    //add list of boards to response
+    console.log('Relaying boards');
+    self.attributes.toSay = '';
+    self.attributes.toSay += 'Your boards are <break time="0.75s"/> ';
+    for (var i = 0; i < self.attributes.userBoards.length; i++) {
+      var board = self.attributes.userBoards[i];
+      if (i == self.attributes.userBoards.length - 1 && i != 0) {
+        self.attributes.toSay += ' and <break time="0.25s"/>';
+      }
+      self.attributes.toSay += board.name + ' <break time="0.5s"/> ';
+    }
+    self.attributes.toSay += ' <break time="1.5s"/> ';
+
+    boardSelect.call(self);
+  });
+};
+
 var boardSelectHandlers = Alexa.CreateStateHandler(states.NEWCARD.BOARDSELECT, {
 
   'BoardSelect': function () {
-    console.log('BoardSelect, board select state');
-    this.response.speak('Which of your boards would you like to create a card on?');
-    this.response.listen('Say the name of one of your boards followed by, \"board\".\
-    I can also list the names of your boards.');
-    this.emit(':responseReady');
+    boardSelect.call(this);
   },
 
   'BoardOptionsIntent': function () {
-    //calls Trello API to list the user's boards
-    //TODO: select a specific team's boards or personal boards
-
-    //add list of boards to response
-    this.response.speak('Your boards are: ');
-    for (var board in userBoards) {
-      this.response.speak(board);
-    }
-
-    this.emit('BoardSelect');
+    boardOptions.call(this);
   },
 
   'BoardSelectedIntent': function () {
-    this.attributes.newCard.selectedBoard = this.event.request.intent.slots.board_name.value;
+    console.log('BoardSelectedIntent, BOARDSELECT state');
+    this.attributes.newCard.selectedBoard.name = this.event.request.intent.slots.board_name.value;
 
-    //check if given option is one of the user's boards
-    if (userBoards.includes(this.attributes.newCard.selectedBoard)) {
-      this.handler.state = states.NEWCARD.LISTSELECT;
-      this.emitWithState('ListSelect');
+    var checkBoards = function () {
+      //check if given option is one of the user's boards
+      var self = this;
+      if (function() {
+        for (var i = 0; i < self.attributes.userBoards.length; i++) {
+          var board = self.attributes.userBoards[i];
+          if (board.name == self.attributes.newCard.selectedBoard.name) {
+            self.attributes.newCard.selectedBoard.id = board.id;
+            return true;
+          }
+        }
+        return false;
+      }) {
+        this.attributes.userBoards = [];
+        this.handler.state = states.NEWCARD.LISTSELECT;
+        this.emitWithState('ListSelect');
+      }
+      else {
+        this.attributes.toSay = this.attributes.newCard.selectedBoard.name + ' is not one of your boards. ';
+        boardSelect.call(this);
+      }
+    };
+
+    var t = new Trello(trello_api_key, this.attributes.trelloToken);
+    if (!this.attributes.userBoards) {
+      this.attributes.userBoards = [];
+      var self = this;
+      t.get('/1/members/me/boards', function(err, data) {
+        if (err) {
+          console.log('Error occured in getting board list.');
+          console.log(err);
+          self.emit(':tell', 'There was an error connecting to Trello, please try again later.');
+        }
+        for (var i = 0; i < data.length; i++) {
+          var board = data[i];
+          self.attributes.userBoards.push({
+            'name': board.name,
+            'id': board.id
+          });
+        }
+        checkBoards.call(self);
+      });
     }
     else {
-      this.response.speak(this.attributes.newCard.selectedBoard + ' is not one of your boards.');
-      this.emit('BoardSelect');
+      checkBoards.call(this);
     }
   },
 
   'AMAZON.HelpIntent': function () {
-    this.emit('BoardOptionsIntent');
+    console.log('HelpIntent, BOARDSELECT state');
+    boardOptions.call(this);
   },
 
   'AMAZON.StopIntent': function () {
-    this.emit('AMAZON.StopIntent');
+    stopIntent.call(this);
   },
 
   'AMAZON.CancelIntent': function () {
+    this.handler.state = states.START;
+    this.emitWithState('LaunchRequest');
+  },
 
+  'Unhandled': function () {
+    console.log('Unhandled, BOARDSELECT state');
+    boardSelect.call(this);
   }
 
 });
+
+var listSelect = function () {
+  console.log('ListSelect, LISTSELECT state');
+  if (!this.attributes.toSay) {
+    this.attributes.toSay = '';
+  }
+  this.response.speak(this.attributes.toSay + 'Which list would you like to create a card on?');
+  this.attributes.toSay = '';
+  this.response.listen('Say the name of one of your lists followed by, \"list\".\
+  I can also list the names of your lists.');
+  this.emit(':responseReady');
+};
+
+var listOptions = function() {
+  console.log('ListOptionsIntent, LISTSELECT state');
+  var t = new Trello(trello_api_key, this.attributes.trelloToken);
+
+  //calls Trello API to list the user's lists on the selected board
+  var self = this;
+  t.get('/1/boards/' + this.attributes.newCard.selectedBoard.id + '/lists', function(err, data) {
+    if (err) {
+      console.log('Error occured in getting list list.');
+      console.log(err);
+      self.emit(':tell', 'There was an error connecting to Trello, please try again later.');
+    }
+    self.attributes.userLists = [];
+    for (var i = 0; i < data.length; i++) {
+      var list = data[i];
+      self.attributes.userLists.push({
+        'name': list.name,
+        'id': list.id
+      });
+    }
+    //add list of lists to response
+    self.response.speak('Your lists are: ');
+    for (var i = 0; i < self.attributes.userLists.length; i++) {
+      var list = self.attributes.userLists[i];
+      if (i == self.attributes.userLists.length - 1 && i != 0) {
+        self.attributes.toSay += ' and <break time="0.25s"/>';
+      }
+      self.attributes.toSay += list.name + ' <break time="0.5s"/> ';
+    }
+    self.attributes.toSay += ' <break time="1.5s"/> ';
+
+    listSelect.call(self);
+  });
+};
 
 var listSelectHandlers = Alexa.CreateStateHandler(states.NEWCARD.LISTSELECT, {
 
   'ListSelect': function () {
-    this.response.speak('Which list would you like to create a card on?');
-    this.response.listen('Say the name of one of your lists followed by, \"list\".\
-    I can also list the names of your lists.');
-    this.emit(':responseReady');
+    listSelect.call(this);
   },
 
   'ListOptionsIntent': function () {
-    //calls Trello API to list the user's lists on the selected board
-
-    //add list of lists to response
-    this.response.speak('Your lists are: ');
-    for (var list in userLists) {
-      this.response.speak(list);
-    }
-
-    this.emit('ListSelect');
+    listOptions.call(this);
   },
 
   'ListSelectedIntent': function () {
-    this.attributes.newCard.selectedList = this.event.request.intent.slots.list_name.value;
+    console.log('ListSelectedIntent, LISTSELECT state');
+    this.attributes.newCard.selectedList.name = this.event.request.intent.slots.list_name.value;
 
-    //check if given option is one of the user's list on the selected board
-    if (userLists.includes(this.attributes.newCard.selectedList)) {
-      this.handler.state = states.NEWCARD.CREATE;
-      this.emitWithState('GetTitle');
+    var checkLists = function () {
+      //check if given option is one of the user's list on the selected board
+      var self = this;
+      if (function() {
+        for (var i = 0; i < self.attributes.userLists.length; i++) {
+          var list = self.attributes.userLists[i];
+          if (list.name == self.attributes.newCard.selectedList.name) {
+            self.attributes.newCard.selectedList.id = list.id;
+            return true;
+          }
+        }
+        return false;
+      }) {
+        this.attributes.userLists = [];
+        this.handler.state = states.NEWCARD.CREATE;
+        this.emitWithState('GetTitle');
+      }
+      else {
+        this.attributes.toSay = this.attributes.newCard.selectedList.name + ' is not one of your lists on your ' +
+        this.attributes.newCard.selectedBoard.name + ' board.';
+        listSelect.call(this);
+      }
+    };
+
+    var t = new Trello(trello_api_key, this.attributes.trelloToken);
+    if (!this.attributes.userLists) {
+      this.attributes.userLists = [];
+      var self = this;
+      t.get('/1/boards/' + this.attributes.newCard.selectedBoard.id + '/lists', function(err, data) {
+        if (err) {
+          console.log('Error occured in getting list list.');
+          console.log(err);
+          self.emit(':tell', 'There was an error connecting to Trello, please try again later.');
+        }
+        for (var i = 0; i < data.length; i++) {
+          var list = data[i];
+          self.attributes.userLists.push({
+            'name': list.name,
+            'id': list.id
+          });
+        }
+        checkLists.call(this);
+      });
     }
     else {
-      this.response.speak(this.attributes.newCard.selectedList + ' is not one of your lists on your ' +
-      this.attributes.newCard.selectedBoard + ' board.');
-      this.emit('ListSelect');
+      checkLists.call(this);
     }
   },
 
   'AMAZON.HelpIntent': function () {
-    this.emit('ListOptionsIntent');
+    listOptions.call(this);
   },
 
   'AMAZON.StopIntent': function () {
-    this.emit('AMAZON.StopIntent');
+    stopIntent.call(this);
   },
 
   'AMAZON.CancelIntent': function () {
+    this.handler.state = states.NEWCARD.BOARDSELECT;
+    this.emitWithState('BoardSelect');
+  },
 
+  'Unhandled': function () {
+    console.log('Unhandled, LISTSELECT state');
+    listSelect.call(this);
   }
 
 });
 
+var additionalCardFeatures = function () {
+  console.log('AdditionalCardFeaturesIntent, CREATE state');
+  this.attributes.newCard.title = this.event.request.intent.slots.title.value;
+
+  var newCardHas = {
+    'description': (this.attributes.newCard.description !== '' ? true : false),
+    'label': (this.attributes.newCard.label !== '' ? true : false),
+    'dueDate': (this.attributes.newCard.dueDate !== null ? true : false)
+  };
+  if (function () {
+    var newCardEmpty = true;
+    for (var key in newCardHas) {
+      if (key) {
+        newCardEmpty = false;
+      }
+    }
+    return newCardEmpty;
+  }) {
+    this.attributes.toSay = '';
+    this.attributes.toSay += 'Would you like to add a';
+    if (!newCardHas.description) {
+      this.attributes.toSay += ' description,';
+    }
+    if (!newCardHas.label) {
+      if (newCardHas.dueDate && !newCardHas.description) {
+        this.attributes.toSay += ' or';
+      }
+      this.attributes.toSay += ' label,';
+    }
+    if (!newCardHas.dueDate) {
+      if (!newCardHas.description || !newCardHas.label) {
+        this.attributes.toSay += ' or';
+      }
+      this.attributes.toSay += ' due date';
+    }
+    this.attributes.toSay += '?';
+    this.response.speak(this.attributes.toSay);
+    this.attributes.toSay = '';
+    this.response.listen('Please say no, description, label, or duedate.');
+    this.emit(':responseReady');
+  }
+  else {
+    sendCard.call(this);
+  }
+};
+
+var askLabel = function () {
+  if (!this.attributes.toSay) {
+    this.attributes.toSay = '';
+  }
+  console.log('AskLabelIntent, CREATE state');
+  this.response.speak(this.attributes.toSay + 'What label would you like to add to the card?');
+  this.attributes.toSay = '';
+  this.response.listen('I can also list labels from your board.');
+  this.emit(':responseReady');
+};
+
+var sendCard = function () {
+  console.log('createCard, CREATE state');
+  //Send new card to Trello
+  this.attributes.t.post('/1/cards',
+  {
+    name: this.attributes.newCard.name,
+    desc: this.attributes.newCard.description,
+    due: this.attributes.newCard.dueDate.toJSON(),
+    idList: this.attributes.newCard.selectedList.id,
+    idLabels: this.attributes.newCard.label
+  }, function(err, data) {
+    if (err) {
+      console.log('Error occured in getting list list.');
+      console.log(err);
+      this.emit(':tell', 'There was an error connecting to Trello, please try again later.');
+    }
+    console.log(data);
+  });
+  this.emit(':tell', 'Card Added! Thank you for using Voice for Trello!');
+};
+
 var createHandlers = Alexa.CreateStateHandler(states.NEWCARD.CREATE, {
 
   'GetTitle': function () {
-    this.emit(':ask', 'What is the title of the new card?', 'Append your title with: The title is ');
+    console.log('GetTitle, CREATE state');
+    this.emit(':ask', 'What is the title of the new card?', 'Prepend your title with: The title is ');
   },
 
   'AdditionalCardFeaturesIntent': function () {
-    this.attributes.newCard.title = this.event.request.intent.slots.title.value;
-
-    var newCardHas = {
-      'description': (this.attributes.newCard.description !== '' ? true : false),
-      'label': (this.attributes.newCard.label !== '' ? true : false),
-      'checklist': (this.attributes.newCard.checklist.length !== 0 ? true : false),
-      'dueDate': (this.attributes.newCard.dueDate !== null ? true : false)
-    };
-    if (function () {
-      var newCardEmpty = true;
-      for (var key in newCardHas) {
-        if (key) {
-          newCardEmpty = false;
-        }
-      }
-      return newCardEmpty;
-    }) {
-      this.response.speak('Would you like to add a');
-      if (!newCardHas.description) {
-        this.response.speak(' description,');
-      }
-      if (!newCardHas.label) {
-        if (newCardHas.checklist && newCardHas.dueDate && !newCardHas.description) {
-          this.response.speak(' or');
-        }
-        this.response.speak(' label,');
-      }
-      if (!newCardHas.checklist) {
-        if (newCardHas.dueDate && (!newCardHas.description || !newCardHas.label)) {
-          this.response.speak(' or');
-        }
-        this.response.speak(' checklist,');
-      }
-      if (!newCardHas.dueDate) {
-        if (!newCardHas.description || !newCardHas.label || !newCardHas.checklist) {
-          this.response.speak(' or');
-        }
-        this.response.speak(' due date');
-      }
-      this.response.speak('?');
-      this.response.listen('Please say no, description, label, checklist, or duedate');
-    }
-    else {
-      this.emit('AMAZON.NoIntent');
-    }
+    additionalCardFeatures.call(this);
   },
 
   'AskDescriptionIntent': function () {
+    console.log('AskDescriptionIntent, CREATE state');
     this.emit(':ask', 'What\'s the description?', 'What is the description for the new card?');
   },
 
   'ReceivedDescriptionIntent': function () {
+    console.log('ReceivedDescriptionIntent, CREATE state');
     this.attributes.newCard.description = this.event.request.intent.slots.description.value;
 
-    this.emit('AdditionalCardFeaturesIntent');
+    additionalCardFeatures.call(this);
   },
 
   'AskLabelIntent': function () {
-    this.response.speak('What label would you like to add to the card?');
-    this.response.listen('I can also list labels from your board.');
-    this.emit(':responseReady');
+    askLabel.call(this);
   },
 
   'LabelOptionsIntent': function () {
+    console.log('LabelOptionsIntent, CREATE state');
+    var t = new Trello(trello_api_key, this.attributes.trelloToken);
+
     //Get labels from board
+    this.attributes.userLabels = [];
+    var self = this;
+    t.get('/1/boards/' + this.attributes.newCard.selectedBoard.id + '/labels', function(err, data) {
+      if (err) {
+        console.log('Error occured in getting list list.');
+        console.log(err);
+        self.emit(':tell', 'There was an error connecting to Trello, please try again later.');
+      }
+      for (var i = 0; i < data.length; i++) {
+        var label = data[i];
+        self.attributes.userLabels.push({
+          'name': label.name,
+          'id': label.id,
+          'color': label.color
+        });
+      }
 
-    this.response.speak('Labels on your ' + this.attributes.newCard.board + ' are: ');
-    for (var label in boardLabels) {
-      this.response.speak(label + ' ');
-    }
+      this.attributes.toSay = 'Labels on your ' + this.attributes.newCard.board + ' are <break time="0.25s"/> ';
+      for (var i = 0; i < this.attributes.userLabels.length; i++) {
+        var label = this.attributes.userLabels[i];
+        this.attributes.toSay += (label.name) ? label.name : label.color + ' <break time="0.75"/>';
+      }
 
-    this.emit('AskLabelIntent');
+      askLabel.call(this);
+    });
   },
 
   'ReceivedLabelIntent': function () {
+    console.log('ReceivedLabelIntent, CREATE state');
     //TODO: add multiple labels to the new card
 
-    this.attributes.newCard.label = this.event.request.intent.slots.label.value;
+    var checkLabels = function () {
+      //check if given option is one of the user's list on the selected board
+      var self = this;
+      if (function() {
+        for (var i = 0; i < self.attributes.userLabels.length; i++) {
+          var label = self.attributes.userLabels[i];
+          if ((label.name) ? label.name : label.color == self.event.request.intent.slots.label.value) {
+            self.attributes.newCard.label = label.id;
+            return true;
+          }
+        }
+        return false;
+      }) {
+        this.attributes.userLabels = [];
+        this.emit('AdditionalCardFeaturesIntent');
+      }
+      else {
+        this.attributes.toSay = 'That label is not one of your labels on your ' +
+        this.attributes.newCard.selectedBoard.name + ' board.';
+      }
+      askLabel.call(this);
+    };
 
-    this.emit('AdditionalCardFeaturesIntent');
-  },
-
-  'AskChecklistIntent': function () {
-    this.response.speak('What are the checklist items? Please say, \"next item\", between each item.');
-    this.response.listen('What are the checklist items for the new card? Please say \"next item\" between each item.');
-    this.emit(':responseReady');
-  },
-
-  'ReceivedChecklistIntent': function () {
-    this.attributes.newCard.checklist = this.event.request.intent.slots.checklist_list.value.split(" next item ");
-
-    this.emit('AdditionalCardFeaturesIntent');
+    if (!this.attributes.userLabels) {
+      this.attributes.userLabels = [];
+      t.get('/1/boards/' + this.attributes.newCard.selectedBoard.id + '/labels', function(err, data) {
+        if (err) {
+          console.log('Error occured in getting list list.');
+          console.log(err);
+          this.emit(':tell', 'There was an error connecting to Trello, please try again later.');
+        }
+        for (var i = 0; i < data.length; i++) {
+          var label = data[i];
+          this.attributes.userLabels.push({
+            'name': label.name,
+            'id': label.id,
+            'color': label.color
+          });
+        }
+        checkLabels.call(this);
+      });
+    }
+    else {
+      checkLabels.call(this);
+    }
   },
 
   'AskDueDateIntent': function () {
-    this.response.speak('What is the due date for the card?');
-    this.response.listent('What is the due date for the new card?');
-    this.emit(':responseReady');
+    console.log('AskDueDateIntent, CREATE state');
+    this.emit(':ask', 'What is the due date for the card?', 'What is the due date for the new card?');
   },
 
   'ReceivedDueDateIntent': function () {
+    console.log('ReceivedDueDateIntent, CREATE state');
     this.attributes.newCard.dueDate = new Date(this.event.request.intent.slots.due_date.value);
 
-    this.emit('AdditionalCardFeaturesIntent');
+    additionalCardFeatures.call(this);
   },
 
   'AMAZON.NoIntent': function () {
-    //Send new card to Trello
-
-    this.emit(':tell', 'Card Added! Thank you for using Voice for Trello!');
+    sendCard.call(this);
   },
 
   'AMAZON.HelpIntent': function () {
-    this.emit('ListOptionsIntent');
+    if (!this.attributes.newCard.title) {
+      this.emit(':ask', 'What is the title of the new card?', 'Prepend your title with: The title is ');
+    }
+    else {
+      additionalCardFeatures.call(this);
+    }
   },
 
   'AMAZON.StopIntent': function () {
-    this.emit('AMAZON.StopIntent');
+    stopIntent.call(this);
   },
 
   'AMAZON.CancelIntent': function () {
+    this.handler.state = states.NEWCARD.LISTSELECT;
+    this.emitWithState('ListSelect');
+  },
 
+  'Unhandled': function () {
+    if (!this.attributes.newCard.title) {
+      this.emit(':ask', 'What is the title of the new card?', 'Prepend your title with: The title is ');
+    }
+    else {
+      additionalCardFeatures.call(this);
+    }
   }
 
 });
