@@ -327,20 +327,26 @@ var boardSelectHandlers = Alexa.CreateStateHandler(states.NEWCARD.BOARDSELECT, {
   'BoardSelectedIntent': function () {
     console.log('BoardSelectedIntent, BOARDSELECT state');
     this.attributes.newCard.selectedBoard.name = this.event.request.intent.slots.board_name.value;
+    console.log('Selected Board: ');
+    console.log(this.attributes.newCard.selectedBoard.name);
 
     var checkBoards = function () {
+      console.log('checkBoards');
+      console.log(this.attributes.userBoards);
       //check if given option is one of the user's boards
       var self = this;
       if (function() {
         for (var i = 0; i < self.attributes.userBoards.length; i++) {
           var board = self.attributes.userBoards[i];
-          if (board.name == self.attributes.newCard.selectedBoard.name) {
+          if (board.name.toUpperCase() == self.attributes.newCard.selectedBoard.name.toUpperCase()) {
             self.attributes.newCard.selectedBoard.id = board.id;
+            console.log('Board ID: ');
+            console.log(self.attributes.newCard.selectedBoard.id);
             return true;
           }
         }
         return false;
-      }) {
+      }()) {
         this.attributes.userBoards = [];
         this.handler.state = states.NEWCARD.LISTSELECT;
         this.emitWithState('ListSelect');
@@ -399,6 +405,8 @@ var boardSelectHandlers = Alexa.CreateStateHandler(states.NEWCARD.BOARDSELECT, {
 
 var listSelect = function () {
   console.log('ListSelect, LISTSELECT state');
+  console.log('Board ID: ');
+  console.log(this.attributes.newCard.selectedBoard.id);
   if (!this.attributes.toSay) {
     this.attributes.toSay = '';
   }
@@ -413,6 +421,8 @@ var listOptions = function() {
   console.log('ListOptionsIntent, LISTSELECT state');
   var t = new Trello(trello_api_key, this.attributes.trelloToken);
 
+  console.log('Board ID: ');
+  console.log(this.attributes.newCard.selectedBoard.id);
   //calls Trello API to list the user's lists on the selected board
   var self = this;
   t.get('/1/boards/' + this.attributes.newCard.selectedBoard.id + '/lists', function(err, data) {
@@ -459,18 +469,21 @@ var listSelectHandlers = Alexa.CreateStateHandler(states.NEWCARD.LISTSELECT, {
     this.attributes.newCard.selectedList.name = this.event.request.intent.slots.list_name.value;
 
     var checkLists = function () {
+      console.log('checkLists');
+      //console.log('Board ID: ');
+      //console.log(this.attributes.newCard.selectedBoard.id);
       //check if given option is one of the user's list on the selected board
       var self = this;
       if (function() {
         for (var i = 0; i < self.attributes.userLists.length; i++) {
           var list = self.attributes.userLists[i];
-          if (list.name == self.attributes.newCard.selectedList.name) {
+          if (list.name.toUpperCase() == self.attributes.newCard.selectedList.name.toUpperCase()) {
             self.attributes.newCard.selectedList.id = list.id;
             return true;
           }
         }
         return false;
-      }) {
+      }()) {
         this.attributes.userLists = [];
         this.handler.state = states.NEWCARD.CREATE;
         this.emitWithState('GetTitle');
@@ -499,7 +512,7 @@ var listSelectHandlers = Alexa.CreateStateHandler(states.NEWCARD.LISTSELECT, {
             'id': list.id
           });
         }
-        checkLists.call(this);
+        checkLists.call(self);
       });
     }
     else {
@@ -529,12 +542,15 @@ var listSelectHandlers = Alexa.CreateStateHandler(states.NEWCARD.LISTSELECT, {
 
 var additionalCardFeatures = function () {
   console.log('AdditionalCardFeaturesIntent, CREATE state');
-  this.attributes.newCard.title = this.event.request.intent.slots.title.value;
-
+  if (!this.attributes.newCard.title) {
+    this.attributes.newCard.title = this.event.request.intent.slots.title.value;
+  }
+  console.log('New card title: ');
+  console.log(this.attributes.newCard.title);
   var newCardHas = {
-    'description': (this.attributes.newCard.description !== '' ? true : false),
-    'label': (this.attributes.newCard.label !== '' ? true : false),
-    'dueDate': (this.attributes.newCard.dueDate !== null ? true : false)
+    'description': (this.attributes.newCard.description) ? true : false,
+    'label': (this.attributes.newCard.label) ? true : false,
+    'dueDate': (this.attributes.newCard.dueDate) ? true : false
   };
   if (function () {
     var newCardEmpty = true;
@@ -544,7 +560,7 @@ var additionalCardFeatures = function () {
       }
     }
     return newCardEmpty;
-  }) {
+  }()) {
     this.attributes.toSay = '';
     this.attributes.toSay += 'Would you like to add a';
     if (!newCardHas.description) {
@@ -587,11 +603,12 @@ var askLabel = function () {
 var sendCard = function () {
   console.log('createCard, CREATE state');
   //Send new card to Trello
-  this.attributes.t.post('/1/cards',
+  var t = new Trello(trello_api_key, this.attributes.trelloToken);
+  t.post('/1/cards',
   {
-    name: this.attributes.newCard.name,
+    name: this.attributes.newCard.title,
     desc: this.attributes.newCard.description,
-    due: this.attributes.newCard.dueDate.toJSON(),
+    due: (this.attributes.newCard.dueDate) ? this.attributes.newCard.dueDate.toJSON() : null,
     idList: this.attributes.newCard.selectedList.id,
     idLabels: this.attributes.newCard.label
   }, function(err, data) {
@@ -674,13 +691,13 @@ var createHandlers = Alexa.CreateStateHandler(states.NEWCARD.CREATE, {
       if (function() {
         for (var i = 0; i < self.attributes.userLabels.length; i++) {
           var label = self.attributes.userLabels[i];
-          if ((label.name) ? label.name : label.color == self.event.request.intent.slots.label.value) {
+          if ((label.name) ? label.name.toUpperCase() : label.color.toUpperCase() == self.event.request.intent.slots.label.value.toUpperCase()) {
             self.attributes.newCard.label = label.id;
             return true;
           }
         }
         return false;
-      }) {
+      }()) {
         this.attributes.userLabels = [];
         this.emit('AdditionalCardFeaturesIntent');
       }
